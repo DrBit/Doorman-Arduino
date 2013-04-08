@@ -8,6 +8,7 @@ int DO_LED_GREEN = 9;               // ~ LED Green - Power
 const int porta_principal = 8;            //   Relay porta 1
 const int porta_jardi = 7;                //   Relay porta 2
 const int porta_garatge = 6;              //   Relay porta 3
+const int porta_extra = 13;               //   Relay porta 3
 
 // Misc
 bool isConnectedToLAN = false;
@@ -37,6 +38,8 @@ unsigned long portaJ_time_delay = 0;
 unsigned long portaJ_start_open = 0;
 unsigned long portaG_time_delay = 0;
 unsigned long portaG_start_open = 0;
+unsigned long portaE_time_delay = 0;
+unsigned long portaE_start_open = 0;
 
 
 void setup() {
@@ -48,6 +51,7 @@ void setup() {
     pinMode(porta_principal, OUTPUT);
     pinMode(porta_jardi, OUTPUT);
     pinMode(porta_garatge, OUTPUT);
+    pinMode(porta_extra, OUTPUT);
     
     digitalWrite(DO_LED_GREEN, HIGH);
     delay(2000);
@@ -80,6 +84,7 @@ void try_lan_connection () {
 boolean portaP_oberta = false;
 boolean portaJ_oberta = false;
 boolean portaG_oberta = false;
+boolean portaE_oberta = false;
 boolean abort_reading = false;
 boolean received_slash = false;
 
@@ -88,7 +93,7 @@ void loop() {
     client = server.available();
     // Receive data
     if (client) {
-        Serial.println(F("new client"));
+        Serial.println(F("Client connected"));
         boolean currentLineIsBlank = true;
         while (client.connected()) {
             if (client.available()) {
@@ -96,7 +101,7 @@ void loop() {
                 //Serial.write(c);
 
                 if (c == '\n' && currentLineIsBlank) {
-                    Serial.println(F("Print answer"));
+                    Serial.println(F("Serve Website"));
                     // send a standard http response header
                     client.println(F("HTTP/1.1 200 OK"));
                     client.println(F("Content-Type: text/html"));
@@ -120,16 +125,20 @@ void loop() {
                 if (c == '*' && !abort_reading) {
                     start_recording = true;
                     if (receivedData == "PortaPrincipal") {
-                        Serial.print(F("||Obre porta principal||"));
+                        Serial.println(F("||Obre porta principal||"));
                         portaP_oberta = true;
                     }
                     if (receivedData == "PortaJardi") {
-                        Serial.print(F("||Obre porta jardi||"));
+                        Serial.println(F("||Obre porta jardi||"));
                         portaJ_oberta = true;
                     }
                     if (receivedData == "PortaGaratge") {
-                        Serial.print(F("||Obre/Tanca porta garatge||"));
+                        Serial.println(F("||Obre/Tanca porta garatge||"));
                         portaG_oberta = true;
+                    }
+                    if (receivedData == "PortaExtra") {
+                        Serial.println(F("||Obre/Tanca porta extra||"));
+                        portaE_oberta = true;
                     }
                     receivedData = "";
                 }
@@ -144,7 +153,7 @@ void loop() {
 
                 if (received_slash && (c == '?')) {
                     abort_reading = true;
-                    Serial.print(F("||abort_reading||"));
+                    //Serial.print(F("||abort_reading||"));
                 }else if (c != '/'){
                     received_slash = false;
                 }
@@ -163,16 +172,21 @@ void loop() {
             printHTMLbuttonAction ("Obrint/Tancant la porta del garatge", "torna");
             obre_sesam (porta_garatge,2000);
             portaG_oberta = false;
+        }else if (portaE_oberta) {
+            printHTMLbuttonAction ("Obrint/Tancant la porta extra", "torna");
+            obre_sesam (porta_extra,2000);
+            portaE_oberta = false;
         }else{
             // Print all buttons
             printHTMLbutton ("PortaPrincipal","Obre Porta Principal");
             printHTMLbutton ("PortaJardi","Obre Porta Jardi");
             printHTMLbutton ("PortaGaratge","Obre/Tanca Porta Garatge");
+            printHTMLbutton ("PortaExtra","Obre/Tanca Porta Extra");
         }
         HTMLend ();
 
         client.stop();
-        Serial.println(F("Client Stoped"));
+        Serial.println(F("Close Connection"));
         abort_reading = false;
     }else{
         // Check timings and see if we have to switch of a previously opened door
@@ -196,12 +210,17 @@ void obre_sesam (int porta, int temps) {
             portaG_start_open = millis();
             portaG_time_delay = temps;
         break;}
+
+        case porta_extra: {
+            portaE_start_open = millis();
+            portaE_time_delay = temps;
+        break;}
     }
     digitalWrite (porta, HIGH);
     Serial.print (F("Obre porta: "));
     Serial.print (porta);
     Serial.print (F(" - Temps: "));
-    Serial.print (temps);
+    Serial.println (temps);
 }
 
 void check_timings () {
@@ -226,6 +245,14 @@ void check_timings () {
             digitalWrite (porta_garatge, LOW);
             portaG_time_delay = 0;
             Serial.println (F("Porta_garatge off"));
+        }
+    }
+
+    if (portaE_time_delay > 0) {
+        if ((millis() - portaE_time_delay) > portaE_start_open) {
+            digitalWrite (porta_extra, LOW);
+            portaE_time_delay = 0;
+            Serial.println (F("Porta_extra off"));
         }
     }
 }
