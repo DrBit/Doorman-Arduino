@@ -10,6 +10,9 @@ const int porta_jardi = 7;                //   Relay porta 2
 const int porta_garatge = 6;              //   Relay porta 3
 const int porta_extra = 13;               //   Relay porta 3
 
+const int temperature_pin = 0;
+const int ldr_pin = 1;
+
 // Misc
 bool isConnectedToLAN = false;
 
@@ -304,4 +307,16 @@ void HTMLend () {
     //EthernetClient client = server.available();
     client.println(F("</html>"));
     client.println(F(""));
+}
+
+fload get_temp () {
+    float temp;
+    temp = (5.0 * analogRead(temperature_pin) * 100.0) / 1024;
+    return temp;
+}
+
+fload get_light () {
+    float light;
+    light = (5.0 * analogRead(ldr_pin) * 100.0) / 1024;
+    return light;
 }
