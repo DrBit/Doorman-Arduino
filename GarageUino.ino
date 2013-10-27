@@ -1,3 +1,5 @@
+// Doorman arduino by Doctor Bit Projects
+// More info at: http://blog.drbit.nl/2013/10/doorman-arduino/
 
 #include <Wire.h>
 #include <SPI.h>
