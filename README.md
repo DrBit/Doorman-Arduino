@@ -1,7 +1,7 @@
-Doormen Arduino
+Doorman Arduino
 ===============
 
-Doormen Arduino is an Arduino based doormen controller for controllind the doors of all your house.
-Please visit [Doctor's bit blog](http://blog.drbit.nl) for more information
+Doorman Arduino is an Arduino based doorman controller for controlling the doors of all your house.
+Please visit [Doctor's bit blog](http://blog.drbit.nl/2013/10/doorman-arduino/) for more information
 
-Doormen Arduino is a work inspired by the project [The GarageUino](http://xdevelopers.net/?p=173)
+Doorman Arduino is a work inspired by the project [The GarageUino](http://xdevelopers.net/?p=173)
